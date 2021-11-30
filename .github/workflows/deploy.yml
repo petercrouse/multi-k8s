@@ -1,4 +1,4 @@
-name: Deploy Docker-Multi
+name: CI
 on:
   push:
     branches:
@@ -8,13 +8,60 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - run: docker build -t aldos/multi-docker -f ./client/Dockerfile.dev ./client
-      - run: docker run -e CI=true aldos/multi-docker npm run test -- --coverage
+      # - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        name: Checkout
+        uses: actions/checkout@v2
+
+      - run: docker build -t aldos/react-test -f ./client/Dockerfile.dev ./client
+      - run: docker run -e CI=true aldos/react-test npm run test -- --coverage
  
-      - name: Generate deployment package
-        run: zip -r deploy.zip . -x '*.git*'
+      # - run: docker build -t aldos/multi-client ./client
+      # - run: docker build -t aldos/multi-nginx ./nginx
+      # - run: docker build -t aldos/multi-server ./server
+      # - run: docker build -t aldos/multi-worker ./worker
+
+      name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      name: Build and push client
+        uses: docker/build-push-action@v2
+        with:
+          context: ./client
+          push: true
+          tags: aldos/multi-client:latest
+
+      name: Build and push nginx
+        uses: docker/build-push-action@v2
+        with:
+          context: ./nginx
+          push: true
+          tags: aldos/multi-nginx:latest
+
+      name: Build and push server
+        uses: docker/build-push-action@v2
+        with:
+          context: ./server
+          push: true
+          tags: aldos/multi-server:latest
+
+      name: Build and push worker
+        uses: docker/build-push-action@v2
+        with:
+          context: ./worker
+          push: true
+          tags: aldos/multi-worker:latest
+
+      # - name: Generate deployment package
+      #   run: zip -r deploy.zip . -x '*.git*'
  
       # - name: Deploy to EB
       #   uses: einaregilsson/beanstalk-deploy@v18
