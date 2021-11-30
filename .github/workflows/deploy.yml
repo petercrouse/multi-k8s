@@ -1,10 +1,16 @@
+name: Deploy Docker-Multi
+on:
+  push:
+    branches:
+      - master
+      
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - run: docker build -t aldos/multi-docker -f Dockerfile.dev .
+      - run: docker build -t aldos/multi-docker -f client/Dockerfile.dev .
       - run: docker run -e CI=true aldos/multi-docker npm run test -- --coverage
  
       - name: Generate deployment package
