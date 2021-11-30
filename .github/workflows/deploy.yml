@@ -8,17 +8,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
       - name: Checkout
         uses: actions/checkout@v2
 
       - run: docker build -t aldos/react-test -f ./client/Dockerfile.dev ./client
       - run: docker run -e CI=true aldos/react-test npm run test -- --coverage
- 
-      # - run: docker build -t aldos/multi-client ./client
-      # - run: docker build -t aldos/multi-nginx ./nginx
-      # - run: docker build -t aldos/multi-server ./server
-      # - run: docker build -t aldos/multi-worker ./worker
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -60,17 +54,17 @@ jobs:
           push: true
           tags: aldos/multi-worker:latest
 
-      # - name: Generate deployment package
-      #   run: zip -r deploy.zip . -x '*.git*'
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
  
-      # - name: Deploy to EB
-      #   uses: einaregilsson/beanstalk-deploy@v18
-      #   with:
-      #     aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-      #     aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-      #     application_name: docker-frontend
-      #     environment_name: Dockerfrontend-env
-      #     existing_bucket_name: elasticbeanstalk-af-south-1-104599259837
-      #     region: af-south-1
-      #     version_label: ${{ github.sha }}
-      #     deployment_package: deploy.zip
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          application_name: multi-docker
+          environment_name: Multidocker-env
+          existing_bucket_name: elasticbeanstalk-af-south-1-104599259837
+          region: af-south-1
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
