@@ -2,7 +2,7 @@ FROM node:16.13.0-alpine as builder
 
 RUN mkdir -p /home/app
 WORKDIR '/app'
-COPY --chown=node:node package*.json .
+COPY --chown=node:node package.json .
 RUN npm install
 COPY --chown=node:node . .
 RUN npm run build
